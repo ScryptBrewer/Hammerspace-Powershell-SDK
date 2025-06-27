@@ -49,17 +49,13 @@ NestedModules = @(
 
     # Public, user-facing functions
     'Public/Connect-Hammerspace.ps1',
-    'Public/Get-HammerspaceRaw.ps1',
-    'Public/Get-HammerspaceShare.ps1',
+    'Public/HammerspaceRaw.ps1',
+    'Public/HammerspaceShare.ps1',
     'Public/Get-HammerspaceTask.ps1',
     'Public/New-HammerspaceExportOption.ps1',
-    'Public/New-HammerspaceRaw.ps1',
-    'Public/New-HammerspaceShare.ps1',
     'Public/New-HammerspaceShareObjective.ps1',
     'Public/New-HammerspaceExportOption.ps1',
-    'Public/Remove-HammerspaceShare.ps1',
-    'Public/HammerspaceSnmp.ps1',
-    'Public/Remove-HammerspaceRaw.ps1'
+    'Public/HammerspaceSnmp.ps1'
 )
 
 # --- EXPORTING COMMANDS ---
@@ -81,12 +77,14 @@ FunctionsToExport = @(
     'Get-HammerspaceSnmpConfiguration',
     'New-HammerspaceSnmpConfiguration',
     'Set-HammerspaceSnmpConfiguration',
+    'Set-HammerspaceShare',
     'Remove-HammerspaceSnmpConfiguration',
     'Test-HammerspaceSnmpNotification',
 
     
     # Raw functions (kept public as per our usage)
     'Get-HammerspaceRaw',
+    'Set-HammerspaceRaw',
     'New-HammerspaceRaw',
     'Remove-HammerspaceRaw'
 )

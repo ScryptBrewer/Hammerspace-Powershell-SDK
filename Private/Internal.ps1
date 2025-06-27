@@ -16,6 +16,10 @@ function Invoke-HammerspaceRestCall {
         [Parameter(Mandatory=$false)] [bool]$IsRetryAfterRelogin = $false
     )
     
+    if (-not $script:HammerspaceSession -and -not $IsLogin) {
+        throw "Not connected to Hammerspace. Please use Connect-Hammerspace to establish a session."
+    }
+
     if ($script:HammerspaceSession.Username -and -not $IsLogin -and -not $IsRetryAfterRelogin -and -not $script:HammerspaceSession.IsLoggedIn) {
         Write-Verbose "Not logged in. Attempting login before API call."
         try { Invoke-HammerspaceLogin } catch { Write-Error "Pre-call login attempt failed: $_"; throw }
@@ -65,7 +69,6 @@ function Invoke-HammerspaceRestCall {
         }
     }
     catch {
-        # Gracefully handle expected empty response for DELETE (though API seems to return a task)
         if ($Method -eq 'DELETE' -and $_.Exception.Response -and $_.Exception.Response.StatusCode -eq 'NoContent') {
             Write-Verbose "DELETE request succeeded with no content in response."
             return $true
@@ -76,7 +79,6 @@ function Invoke-HammerspaceRestCall {
     }
 }
 
-# The Invoke-HammerspaceTaskMonitor function does not need to be changed.
 function Invoke-HammerspaceTaskMonitor {
     [CmdletBinding()]
     param(
