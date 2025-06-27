@@ -31,7 +31,7 @@ Navigate to the project directory and import the module into your PowerShell ses
 ```powershell
 
 # Import the module
-Import-Module ./Hammerspace-Powershell-SDK/HammerspaceModule.psd1 -Force
+Import-Module ./Hammerspace-Powershell-SDK/HammerspaceModule.psd1
 ```
 
 ### 3. Connect to Your Hammerspace Cluster
