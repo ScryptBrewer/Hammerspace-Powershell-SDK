@@ -137,7 +137,7 @@ Get-HammerspaceTask -Uuid "a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6"
 ```
 #### Advanced Usage: The "Raw" Functions
 For maximum flexibility, the module includes "raw" functions that allow you to interact with any API endpoint, even those without a dedicated, user-friendly wrapper.
-#####Get-HammerspaceRaw
+##### Get-HammerspaceRaw
 Performs a GET request to any resource path.
 ```powershell
 
