@@ -1,3 +1,6 @@
+# Public/HammerspaceRaw.ps1
+# Contains functions for making generic GET, POST, PUT, and DELETE requests to the Hammerspace API.
+
 function Get-HammerspaceRaw {
     [CmdletBinding()]
     [OutputType([psobject])]
