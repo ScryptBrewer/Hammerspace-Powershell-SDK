@@ -1,6 +1,3 @@
-# Public/HammerspaceRaw.ps1
-# Contains functions for making generic GET, POST, PUT, and DELETE requests to the Hammerspace API.
-
 function Get-HammerspaceRaw {
     [CmdletBinding()]
     [OutputType([psobject])]
@@ -9,16 +6,23 @@ function Get-HammerspaceRaw {
         [string]$ResourcePath,
 
         [Parameter(Mandatory=$false)]
-        [hashtable]$QueryParams
+        [hashtable]$QueryParams,
+
+        [Parameter(Mandatory=$false)]
+        [switch]$Full
     )
     <#
     .SYNOPSIS
-        Retrieves raw data from a specified Hammerspace API resource path.
+        Retrieves data from a specified Hammerspace API resource path, with optional formatting.
 
     .DESCRIPTION
-        This function is a generic wrapper that performs a GET request to any given endpoint
-        in the Hammerspace API. It is useful for accessing data from resources that do not
-        have a dedicated high-level function.
+        This function performs a GET request to any given endpoint in the Hammerspace API.
+        By default, it cleans up the output by removing internal-only fields and converting
+        Hammerspace timestamps to standard [DateTime] objects for better readability and usability.
+
+        To get the completely unmodified object from the API, use the -Raw switch. This is
+        primarily used by other functions like Set-HammerspaceRaw that need the original object
+        structure for updates.
 
     .PARAMETER ResourcePath
         The path to the API resource, e.g., "shares", "objectives", or "tasks/some-uuid".
@@ -27,96 +31,62 @@ function Get-HammerspaceRaw {
         A hashtable of optional query parameters to append to the URL, such as for filtering or sorting.
         Example: @{ spec = "name=eq=MyShare" }
 
+    .PARAMETER Full
+        If specified, the function returns the full, unmodified object(s) from the API, skipping
+        any default formatting or field suppression.
+
     .EXAMPLE
-        # Get all objectives
+        # Get all objectives with default formatting
         Get-HammerspaceRaw -ResourcePath "objectives"
 
     .EXAMPLE
-        # Get a specific share by its UUID
+        # Get a specific share by its UUID, which will have timestamps converted
         Get-HammerspaceRaw -ResourcePath "shares/7dceba09-12da-42d3-ba5f-72d60a75028d"
 
     .EXAMPLE
-        # Get all shares with a specific filter
-        Get-HammerspaceRaw -ResourcePath "shares" -QueryParams @{ spec = "site.name=eq=MySite" }
+        # Get the raw, unformatted object for a specific share
+        Get-HammerspaceRaw -ResourcePath "shares/7dceba09-12da-42d3-ba5f-72d60a75028d" -Full
 
     .OUTPUTS
         System.Management.Automation.PSObject
-        The raw object or array of objects returned by the API.
+        The formatted or raw object/array of objects returned by the API.
     #>
 
     try {
-        # Call the internal REST function with the specified path and query parameters.
-        return Invoke-HammerspaceRestCall -Path $ResourcePath -Method 'GET' -QueryParams $QueryParams
+        # Call the internal REST function to get the raw data.
+        $apiResult = Invoke-HammerspaceRestCall -Path $ResourcePath -Method 'GET' -QueryParams $QueryParams
+
+        # If -Raw is specified or there's no result, return the data as-is.
+        if ($Full.IsPresent -or -not $apiResult) {
+            return $apiResult
+        }
+
+        Write-Verbose "Formatting API output. Suppressing internal fields and converting timestamps."
+
+        # Define the fields to process
+        $fieldsToSuppress = @('clientCert', 'trustClientCert', 'internalId', 'extendedInfo', 'userRestrictions', 'resumedFromId','objectStoreLogicalVolume')
+        $fieldsToConvert = @('created', 'started', 'ended', 'modified', 'eulaAcceptedDate', 'currentTimeMs','previousSendTime','activationTime')
+
+        $processedResult = foreach ($item in $apiResult) {
+            $tempItem = $item | Select-Object -ExcludeProperty $fieldsToSuppress
+
+            foreach ($field in $fieldsToConvert) {
+                $property = $tempItem.PSObject.Properties[$field]
+                if ($null -ne $property) {
+                    $timestamp = $property.Value
+                    if ($timestamp -is [long]) {
+                        Write-Verbose "Converting timestamp for field '$field' with value '$timestamp'."
+                        $tempItem.$field = Convert-HammerspaceTimeToDateTime -Timestamp $timestamp
+                    }
+                }
+            }
+            $tempItem
+        }
+
+        return $processedResult
     }
     catch {
         Write-Error "Failed to get resource from '$ResourcePath'. Error: $_"
-    }
-}
-
-function New-HammerspaceRaw {
-    [CmdletBinding()]
-    [OutputType([psobject])]
-    param(
-        [Parameter(Mandatory=$true)]
-        [string]$ResourcePath,
-        
-        [Parameter(Mandatory=$true)]
-        [hashtable]$Data,
-        
-        [Parameter(Mandatory=$false)]
-        [switch]$MonitorTask
-    )
-    <#
-    .SYNOPSIS
-        Creates a new resource using the Hammerspace API.
-
-    .DESCRIPTION
-        This function sends a POST request to a specified Hammerspace API endpoint to create a new resource.
-        It can optionally monitor the asynchronous task that the API may return.
-
-    .PARAMETER ResourcePath
-        The path to the API resource collection where the new resource will be created, e.g., "shares".
-
-    .PARAMETER Data
-        A hashtable containing the data for the new resource. This will be converted to a JSON body for the request.
-
-    .PARAMETER MonitorTask
-        If specified, the function will monitor the progress of the task created by the API call until it completes.
-
-    .EXAMPLE
-        # Create a new share
-        $shareData = @{
-            name = "MyNewShare"
-            sharePath = "/mnt/my-new-share"
-            exportOptions = @(
-                @{
-                    path = "/"
-                    clients = "192.168.1.0/24(rw,no_root_squash)"
-                }
-            )
-        }
-        New-HammerspaceRaw -ResourcePath "shares" -Data $shareData
-
-    .EXAMPLE
-        # Create a new objective and monitor the creation task
-        $objectiveData = @{
-            name = "MyReplicationObjective"
-            action = "REPLICATE"
-            # ... other objective properties
-        }
-        New-HammerspaceRaw -ResourcePath "objectives" -Data $objectiveData -MonitorTask
-
-    .OUTPUTS
-        System.Management.Automation.PSObject
-        If -MonitorTask is not used, returns the initial API response (often a task object).
-        If -MonitorTask is used, returns the final, completed task object.
-    #>
-
-    if ($MonitorTask) {
-        Invoke-HammerspaceTaskMonitor -ResourcePath $ResourcePath -Method 'POST' -Data $Data
-    }
-    else {
-        Invoke-HammerspaceRestCall -Path $ResourcePath -Method 'POST' -BodyData $Data -BodyFormat "Json"
     }
 }
 
@@ -174,7 +144,7 @@ function Set-HammerspaceRaw {
     #>
     try {
         Write-Verbose "Getting current object state from '$ResourcePath'"
-        $currentObject = Get-HammerspaceRaw -ResourcePath $ResourcePath
+        $currentObject = Get-HammerspaceRaw -ResourcePath $ResourcePath -Full
 
         if (-not $currentObject) {
             throw "Could not retrieve object at path '$ResourcePath'. Cannot perform update."
