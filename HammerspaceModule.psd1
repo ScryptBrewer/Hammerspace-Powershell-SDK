@@ -22,7 +22,7 @@ Copyright = '(c) 2025 John Olson. All rights reserved.'
 Description = 'A PowerShell module for interacting with the Hammerspace API.'
 
 # Version number of this module.
-ModuleVersion = '1.0.0'
+ModuleVersion = '1.0.1'
 
 # Minimum version of PowerShell required by this module. We set this to 5.1 due to our compatibility fixes.
 PowerShellVersion = '5.1'
@@ -48,14 +48,21 @@ NestedModules = @(
     'Private/Internal.ps1',
 
     # Public, user-facing functions
-    'Public/Connect-Hammerspace.ps1',
-    'Public/HammerspaceRaw.ps1',
-    'Public/HammerspaceShare.ps1',
-    'Public/Get-HammerspaceTask.ps1',
-    'Public/New-HammerspaceExportOption.ps1',
+    'Public/Add-HammerspaceCloudNode.ps1',        
+    'Public/HammerspaceRaw.ps1',          
+    'Public/New-HammerspaceObjectVolume.ps1',     
+    'Public/Start-HammerspaceAssimilation.ps1',
+    'Public/Connect-Hammerspace.ps1',         
+    'Public/HammerspaceShare.ps1',            
     'Public/New-HammerspaceShareObjective.ps1',
-    'Public/New-HammerspaceExportOption.ps1',
-    'Public/HammerspaceSnmp.ps1'
+    'Public/Get-HammerspaceAssimilationStatus.ps1',   
+    'Public/HammerspaceSnmp.ps1',
+    'Public/HammerspaceUtil.ps1',         
+    'Public/New-HammerspaceVolumeGroup.ps1',
+    'Public/Get-HammerspaceTask.ps1',         
+    'Public/New-HammerspaceExportOption.ps1',     
+    'Public/Set-HammerspaceShareObjective.ps1'
+
 )
 
 # --- EXPORTING COMMANDS ---
@@ -68,25 +75,35 @@ FunctionsToExport = @(
 
     # Public Functions
     'Connect-Hammerspace',
+    'Add-HammerspaceCloudNode',
+    'Get-HammerspaceAssimilationStatus',
     'Get-HammerspaceShare',
+    'Get-HammerspaceSnmpConfiguration',
+    'Get-HammerspaceTask',
+    'New-HammerspaceExportOption',
+    'New-HammerspaceObjectVolume',
     'New-HammerspaceShare',
     'New-HammerspaceShareObjective',
-    'New-HammerspaceExportOption',
-    'Remove-HammerspaceShare',
-    'Get-HammerspaceTask',
-    'Get-HammerspaceSnmpConfiguration',
     'New-HammerspaceSnmpConfiguration',
-    'Set-HammerspaceSnmpConfiguration',
-    'Set-HammerspaceShare',
+    'New-HammerspaceVolumeGroup',
+    'Remove-HammerspaceShare',
     'Remove-HammerspaceSnmpConfiguration',
+    'Set-HammerspaceShare',
+    'Set-HammerspaceShareObjective',
+    'Set-HammerspaceSnmpConfiguration',
+    'Start-HammerspaceAssimilation',
     'Test-HammerspaceSnmpNotification',
+    'Get-HammerspacePermittedOperations',
+    'Get-HammerspaceController',
+    'Get-HammerspaceSmtp',
+    'Get-HammerspaceCurrentUser',
 
-    
     # Raw functions (kept public as per our usage)
     'Get-HammerspaceRaw',
-    'Set-HammerspaceRaw',
     'New-HammerspaceRaw',
-    'Remove-HammerspaceRaw'
+    'Remove-HammerspaceRaw',
+    'Set-HammerspaceRaw'
+
 )
 
 # Cmdlets to export from this module

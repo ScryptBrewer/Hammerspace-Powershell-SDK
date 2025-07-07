@@ -72,21 +72,25 @@ function Get-HammerspaceShare {
     }
 
     try {
-        $shares = Invoke-HammerspaceRestCall -Path $resourcePath -QueryParams $queryParams
-        if ($null -eq $shares) { return }
+        
+        
 
         if ($Full) {
+            $shares = Invoke-HammerspaceRestCall -Path $resourcePath -QueryParams $queryParams -Full
+            if ($null -eq $shares) { return }
             return $shares
         }
         else {
+            $shares = Invoke-HammerspaceRestCall -Path $resourcePath -QueryParams $queryParams
+            if ($null -eq $shares) { return }
             $shareList = if ($shares -is [array]) { $shares } else { @($shares) }
             foreach ($share in $shareList) {
                 [PSCustomObject]@{
                     Name       = $share.name
                     Path       = $share.path
                     UUID       = $share.uoid.uuid
-                    Created    = if ($share.created) { Convert-HammerspaceTimeToDateTime -Timestamp $share.created } else { $null }
-                    Modified   = if ($share.modified) { Convert-HammerspaceTimeToDateTime -Timestamp $share.modified } else { $null }
+                    Created    = $share.created
+                    Modified   = $share.modified
                     Objectives = $share.shareObjectives
                     Exports    = $share.exportOptions
                 }

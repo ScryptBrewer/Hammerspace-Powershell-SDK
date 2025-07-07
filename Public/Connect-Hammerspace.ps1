@@ -18,10 +18,8 @@ function Connect-Hammerspace {
     )
 
     try {
-        # Step 1: Call the initialization function with the provided parameters
         Initialize-HammerspaceConnection -Cluster $Cluster -Credential $Credential -Port $Port -VerifySSL:$VerifySSL
         
-        # Step 2: Immediately call the login function
         Invoke-HammerspaceLogin
 
         Write-Host "Successfully connected to Hammerspace cluster: $Cluster" -ForegroundColor Green

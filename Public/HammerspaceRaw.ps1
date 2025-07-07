@@ -56,42 +56,124 @@ function Get-HammerspaceRaw {
     #>
 
     try {
-        # Call the internal REST function to get the raw data.
-        $apiResult = Invoke-HammerspaceRestCall -Path $ResourcePath -Method 'GET' -QueryParams $QueryParams
-
-        # If -Raw is specified or there's no result, return the data as-is.
-        if ($Full.IsPresent -or -not $apiResult) {
-            return $apiResult
-        }
-
-        Write-Verbose "Formatting API output. Suppressing internal fields and converting timestamps."
-
-        # Define the fields to process
-        $fieldsToSuppress = @('clientCert', 'trustClientCert', 'internalId', 'extendedInfo', 'userRestrictions', 'resumedFromId','objectStoreLogicalVolume')
-        $fieldsToConvert = @('created', 'started', 'ended', 'modified', 'eulaAcceptedDate', 'currentTimeMs','previousSendTime','activationTime')
-
-        $processedResult = foreach ($item in $apiResult) {
-            $tempItem = $item | Select-Object -ExcludeProperty $fieldsToSuppress
-
-            foreach ($field in $fieldsToConvert) {
-                $property = $tempItem.PSObject.Properties[$field]
-                if ($null -ne $property) {
-                    $timestamp = $property.Value
-                    if ($timestamp -is [long]) {
-                        Write-Verbose "Converting timestamp for field '$field' with value '$timestamp'."
-                        $tempItem.$field = Convert-HammerspaceTimeToDateTime -Timestamp $timestamp
-                    }
-                }
-            }
-            $tempItem
-        }
-
-        return $processedResult
+        return Invoke-HammerspaceRestCall -Path $ResourcePath -Method 'GET' -QueryParams $QueryParams -Full:$Full.IsPresent
     }
     catch {
         Write-Error "Failed to get resource from '$ResourcePath'. Error: $_"
     }
 }
+
+function New-HammerspaceRaw {
+    [CmdletBinding(SupportsShouldProcess = $true)]
+    [OutputType([psobject])]
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string]$ResourcePath,
+
+        [Parameter(Mandatory = $true, Position = 1)]
+        [hashtable]$Properties,
+
+        [Parameter(Mandatory = $false)]
+        [switch]$MonitorTask
+    )
+    <#
+    .SYNOPSIS
+        Creates a new resource at a specified Hammerspace API resource path.
+
+    .DESCRIPTION
+        This function performs a POST request to create a new resource in the Hammerspace API.
+        It takes the resource path and a hashtable of properties that define the new resource.
+
+        The function will convert the provided properties hashtable into the appropriate format
+        for the API request body and handle the creation process.
+
+        If the API returns a task for asynchronous processing, you can use the -MonitorTask
+        switch to wait for completion and get the final result.
+
+    .PARAMETER ResourcePath
+        The path to the API resource collection where the new item should be created.
+        Example: "shares", "objectives", "volumes"
+
+    .PARAMETER Properties
+        A hashtable of properties and their values that define the new resource.
+        Example: @{ name = "MyNewShare"; path = "/mnt/share"; exportOptions = "rw" }
+
+    .PARAMETER MonitorTask
+        If specified, the function will monitor the progress of the creation task created by the API call
+        until it completes, returning the final result instead of just the initial response.
+
+    .EXAMPLE
+        # Create a new share
+        $shareProps = @{
+            name = "TestShare"
+            path = "/mnt/testshare"
+            exportOptions = "rw,no_root_squash"
+            comment = "Test share created via PowerShell"
+        }
+        New-HammerspaceRaw -ResourcePath "shares" -Properties $shareProps
+
+    .EXAMPLE
+        # Create a new objective and monitor the task
+        $objectiveProps = @{
+            name = "HighPriorityObjective"
+            spec = @{
+                source = "/source/path"
+                destination = "/dest/path"
+                priority = "high"
+            }
+        }
+        New-HammerspaceRaw -ResourcePath "objectives" -Properties $objectiveProps -MonitorTask
+
+    .EXAMPLE
+        # Create a new volume with monitoring
+        $volumeProps = @{
+            name = "DataVolume"
+            size = "100GB"
+            blockSize = 4096
+        }
+        New-HammerspaceRaw -ResourcePath "volumes" -Properties $volumeProps -MonitorTask
+
+    .OUTPUTS
+        System.Management.Automation.PSObject
+        If -MonitorTask is not used, returns the initial API response from the creation.
+        If -MonitorTask is used, returns the final, completed task object.
+
+    .NOTES
+        This function creates new resources in Hammerspace. The exact properties required
+        depend on the type of resource being created. Refer to the Hammerspace API
+        documentation for specific property requirements for each resource type.
+    #>
+
+    try {
+        Write-Verbose "Creating new resource at '$ResourcePath' with provided properties."
+        
+        # Validate that we have properties to send
+        if ($Properties.Count -eq 0) {
+            throw "Properties hashtable cannot be empty when creating a new resource."
+        }
+
+        Write-Verbose "Converting properties hashtable for API request body."
+        $bodyHashtable = @{}
+        foreach ($key in $Properties.Keys) {
+            $bodyHashtable[$key] = $Properties[$key]
+        }
+
+        if ($PSCmdlet.ShouldProcess($ResourcePath, "Create (POST) new resource with specified properties")) {
+            if ($MonitorTask) {
+                Write-Verbose "Creating resource and monitoring task completion."
+                Invoke-HammerspaceTaskMonitor -ResourcePath $ResourcePath -Method 'POST' -Data $bodyHashtable
+            }
+            else {
+                Write-Verbose "Creating resource without task monitoring."
+                Invoke-HammerspaceRestCall -Path $ResourcePath -Method 'POST' -BodyData $bodyHashtable
+            }
+        }
+    }
+    catch {
+        Write-Error "Failed to create new resource at '$ResourcePath'. Error: $_"
+    }
+}
+
 
 function Set-HammerspaceRaw {
     [CmdletBinding(SupportsShouldProcess = $true)]

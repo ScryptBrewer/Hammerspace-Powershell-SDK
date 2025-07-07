@@ -31,7 +31,7 @@ Navigate to the project directory and import the module into your PowerShell ses
 ```powershell
 
 # Import the module
-Import-Module ./Hammerspace-Powershell-SDK/HammerspaceModule.psd1 -Force
+Import-Module ./Hammerspace-Powershell-SDK/HammerspaceModule.psd1
 ```
 
 ### 3. Connect to Your Hammerspace Cluster
@@ -42,24 +42,20 @@ Connecting is simple and secure. The recommended method is to use the Connect-Ha
 # This will prompt you for your Hammerspace username and password
 $cred = Get-Credential
 
-# Encrypt and save the credential object to a file for later use
-$cred | Export-Clixml -Path "C:\Path\To\Your\HammerspaceCreds.xml"
 ```
 
 Connecting in Your Scripts:
 
 ```powershell
 
-# Import the securely stored credential
-$credential = Import-Clixml -Path "C:\Path\To\Your\HammerspaceCreds.xml"
-
 # Connect to the cluster using the credential object
-Connect-Hammerspace -Cluster "your-cluster-name.hammerspace.com" -Credential $credential
+Connect-Hammerspace -Cluster "your-cluster-name.hammerspace.com" -Credential $cred
 ```
 
 You are now connected and ready to run commands!
 Basic Operations & Examples
 Here’s how to use the primary functions in the module.
+
 ### Managing Shares
 Get a List of All Shares
 
@@ -142,7 +138,7 @@ Performs a GET request to any resource path.
 ```powershell
 
 # Get a list of all defined objectives
-Get-HammerspaceRaw -ResourcePath "objectives"
+Get-HammerspaceRaw -ResourcePath "objectives" -Full
 
 # Get a list of all sites
 Get-HammerspaceRaw -ResourcePath "sites"

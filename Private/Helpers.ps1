@@ -49,3 +49,58 @@ WARNING: Failed to convert timestamp.
         return $null
     }
 }
+
+function Format-HammerspaceApiResult {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$true)]
+        [psobject]$ApiResult,
+
+        [Parameter(Mandatory=$false)]
+        [string[]]$fieldsToSuppress = @(
+            'clientCert', 
+            'trustClientCert', 
+            'internalId', 
+            'extendedInfo', 
+            'userRestrictions', 
+            'resumedFromId',
+            'objectStoreLogicalVolume',
+            'serverCertChain'
+        ),
+
+        [Parameter(Mandatory=$false)]
+        [string[]]$fieldsToConvert = @(
+            'created', 
+            'started', 
+            'ended', 
+            'modified', 
+            'eulaAcceptedDate', 
+            'currentTimeMs',
+            'previousSendTime',
+            'activationTime',
+            'since'
+        )
+    )
+    
+    Write-Verbose "Formatting API output. Suppressing $($fieldsToSuppress.Count) fields and converting $($fieldsToConvert.Count) timestamp fields."
+    
+    $processedResult = foreach ($item in $ApiResult) {
+        # Suppress specified fields
+        $tempItem = $item | Select-Object -ExcludeProperty $fieldsToSuppress
+
+        # Convert specified timestamp fields
+        foreach ($field in $fieldsToConvert) {
+            $property = $tempItem.PSObject.Properties[$field]
+            if ($null -ne $property) {
+                $timestamp = $property.Value
+                if ($timestamp -is [long]) {
+                    Write-Verbose "Converting timestamp for field '$field' with value '$timestamp'."
+                    $tempItem.$field = Convert-HammerspaceTimeToDateTime -Timestamp $timestamp
+                }
+            }
+        }
+        $tempItem
+    }
+
+    return $processedResult
+}

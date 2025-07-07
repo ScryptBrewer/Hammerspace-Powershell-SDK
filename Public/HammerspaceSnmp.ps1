@@ -1,29 +1,7 @@
 # Public/HammerspaceSnmp.ps1
 # Contains functions for managing Hammerspace SNMP configurations.
 
-<#
-.SYNOPSIS
-    Gets SNMP configurations from the Hammerspace cluster.
-.DESCRIPTION
-    Gets all SNMP configurations or a specific SNMP configuration by its identifier.
-    This corresponds to the GET /snmp and GET /snmp/{identifier} API endpoints.
-.PARAMETER Identifier
-    The unique identifier of a specific SNMP configuration to retrieve. If omitted, all configurations are returned.
-.PARAMETER Spec
-    A filter predicate to apply when listing all configurations.
-.PARAMETER Page
-    The zero-based page number for pagination when listing all configurations.
-.PARAMETER PageSize
-    The number of elements per page for pagination.
-.PARAMETER PageSort
-    The field to sort on when listing all configurations.
-.PARAMETER PageSortDir
-    The direction to sort ('asc' or 'desc').
-.EXAMPLE
-    Get-HammerspaceSnmpConfiguration
-.EXAMPLE
-    Get-HammerspaceSnmpConfiguration -Identifier "snmp-config-uuid"
-#>
+
 function Get-HammerspaceSnmpConfiguration {
     [CmdletBinding()]
     [OutputType([psobject])]
@@ -48,7 +26,29 @@ function Get-HammerspaceSnmpConfiguration {
         [ValidateSet('asc', 'desc')]
         [string]$PageSortDir
     )
-
+    <#
+    .SYNOPSIS
+        Gets SNMP configurations from the Hammerspace cluster.
+    .DESCRIPTION
+        Gets all SNMP configurations or a specific SNMP configuration by its identifier.
+        This corresponds to the GET /snmp and GET /snmp/{identifier} API endpoints.
+    .PARAMETER Identifier
+        The unique identifier of a specific SNMP configuration to retrieve. If omitted, all configurations are returned.
+    .PARAMETER Spec
+        A filter predicate to apply when listing all configurations.
+    .PARAMETER Page
+        The zero-based page number for pagination when listing all configurations.
+    .PARAMETER PageSize
+        The number of elements per page for pagination.
+    .PARAMETER PageSort
+        The field to sort on when listing all configurations.
+    .PARAMETER PageSortDir
+        The direction to sort ('asc' or 'desc').
+    .EXAMPLE
+        Get-HammerspaceSnmpConfiguration
+    .EXAMPLE
+        Get-HammerspaceSnmpConfiguration -Identifier "snmp-config-uuid"
+    #>
     try {
         $path = '/snmp'
         $queryParams = @{}
@@ -72,22 +72,7 @@ function Get-HammerspaceSnmpConfiguration {
     }
 }
 
-<#
-.SYNOPSIS
-    Creates a new SNMP configuration.
-.DESCRIPTION
-    Creates a new SNMP configuration using the provided data.
-    This corresponds to the POST /snmp API endpoint.
-.PARAMETER SnmpData
-    A hashtable containing the data for the new SNMP configuration. This mirrors the request body of the API call.
-.PARAMETER MonitorTask
-    If specified, the function will monitor the asynchronous task until completion.
-.PARAMETER Timeout
-    The timeout in seconds for monitoring the task. Defaults to 300.
-.EXAMPLE
-    $data = @{ managers = @("10.0.0.1"); communityString = "public" }
-    New-HammerspaceSnmpConfiguration -SnmpData $data
-#>
+
 function New-HammerspaceSnmpConfiguration {
     [CmdletBinding(SupportsShouldProcess=$true)]
     [OutputType([psobject])]
@@ -101,7 +86,22 @@ function New-HammerspaceSnmpConfiguration {
         [Parameter()]
         [int]$Timeout = 300
     )
-
+    <#
+    .SYNOPSIS
+        Creates a new SNMP configuration.
+    .DESCRIPTION
+        Creates a new SNMP configuration using the provided data.
+        This corresponds to the POST /snmp API endpoint.
+    .PARAMETER SnmpData
+        A hashtable containing the data for the new SNMP configuration. This mirrors the request body of the API call.
+    .PARAMETER MonitorTask
+        If specified, the function will monitor the asynchronous task until completion.
+    .PARAMETER Timeout
+        The timeout in seconds for monitoring the task. Defaults to 300.
+    .EXAMPLE
+        $data = @{ managers = @("10.0.0.1"); communityString = "public" }
+        New-HammerspaceSnmpConfiguration -SnmpData $data
+    #>
     process {
         try {
             if ($pscmdlet.ShouldProcess("New SNMP Configuration", "Create SNMP Configuration")) {
@@ -119,24 +119,7 @@ function New-HammerspaceSnmpConfiguration {
     }
 }
 
-<#
-.SYNOPSIS
-    Updates an existing SNMP configuration.
-.DESCRIPTION
-    Updates an existing SNMP configuration identified by its UUID, using the provided data.
-    This corresponds to the PUT /snmp/{identifier} API endpoint.
-.PARAMETER Identifier
-    The unique identifier of the SNMP configuration to update.
-.PARAMETER SnmpData
-    A hashtable containing the new data for the configuration.
-.PARAMETER MonitorTask
-    If specified, the function will monitor the asynchronous task until completion.
-.PARAMETER Timeout
-    The timeout in seconds for monitoring the task. Defaults to 300.
-.EXAMPLE
-    $data = @{ managers = @("10.0.0.1", "10.0.0.2"); communityString = "private" }
-    Set-HammerspaceSnmpConfiguration -Identifier "snmp-config-uuid" -SnmpData $data
-#>
+
 function Set-HammerspaceSnmpConfiguration {
     [CmdletBinding(SupportsShouldProcess=$true)]
     [OutputType([psobject])]
@@ -153,7 +136,24 @@ function Set-HammerspaceSnmpConfiguration {
         [Parameter()]
         [int]$Timeout = 300
     )
-
+    <#
+    .SYNOPSIS
+        Updates an existing SNMP configuration.
+    .DESCRIPTION
+        Updates an existing SNMP configuration identified by its UUID, using the provided data.
+        This corresponds to the PUT /snmp/{identifier} API endpoint.
+    .PARAMETER Identifier
+        The unique identifier of the SNMP configuration to update.
+    .PARAMETER SnmpData
+        A hashtable containing the new data for the configuration.
+    .PARAMETER MonitorTask
+        If specified, the function will monitor the asynchronous task until completion.
+    .PARAMETER Timeout
+        The timeout in seconds for monitoring the task. Defaults to 300.
+    .EXAMPLE
+        $data = @{ managers = @("10.0.0.1", "10.0.0.2"); communityString = "private" }
+        Set-HammerspaceSnmpConfiguration -Identifier "snmp-config-uuid" -SnmpData $data
+    #>
     process {
         try {
             $path = "/snmp/$Identifier"
@@ -173,21 +173,7 @@ function Set-HammerspaceSnmpConfiguration {
     }
 }
 
-<#
-.SYNOPSIS
-    Deletes an SNMP configuration.
-.DESCRIPTION
-    Deletes an SNMP configuration by its identifier.
-    This corresponds to the DELETE /snmp/{identifier} API endpoint.
-.PARAMETER Identifier
-    The unique identifier of the SNMP configuration to delete.
-.PARAMETER MonitorTask
-    If specified, the function will monitor the asynchronous task until completion.
-.PARAMETER Timeout
-    The timeout in seconds for monitoring the task. Defaults to 300.
-.EXAMPLE
-    Remove-HammerspaceSnmpConfiguration -Identifier "snmp-config-uuid"
-#>
+
 function Remove-HammerspaceSnmpConfiguration {
     [CmdletBinding(SupportsShouldProcess=$true)]
     [OutputType([psobject])]
@@ -201,7 +187,21 @@ function Remove-HammerspaceSnmpConfiguration {
         [Parameter()]
         [int]$Timeout = 300
     )
-
+    <#
+    .SYNOPSIS
+        Deletes an SNMP configuration.
+    .DESCRIPTION
+        Deletes an SNMP configuration by its identifier.
+        This corresponds to the DELETE /snmp/{identifier} API endpoint.
+    .PARAMETER Identifier
+        The unique identifier of the SNMP configuration to delete.
+    .PARAMETER MonitorTask
+        If specified, the function will monitor the asynchronous task until completion.
+    .PARAMETER Timeout
+        The timeout in seconds for monitoring the task. Defaults to 300.
+    .EXAMPLE
+        Remove-HammerspaceSnmpConfiguration -Identifier "snmp-config-uuid"
+    #>
     process {
         try {
             $path = "/snmp/$Identifier"
@@ -221,21 +221,7 @@ function Remove-HammerspaceSnmpConfiguration {
     }
 }
 
-<#
-.SYNOPSIS
-    Tests an SNMP notification.
-.DESCRIPTION
-    Sends a test SNMP notification to a specified address.
-    This corresponds to the POST /snmp/test/{address} API endpoint.
-.PARAMETER Address
-    The IP address or hostname to send the test SNMP notification to.
-.PARAMETER MonitorTask
-    If specified, the function will monitor the asynchronous task until completion.
-.PARAMETER Timeout
-    The timeout in seconds for monitoring the task. Defaults to 120.
-.EXAMPLE
-    Test-HammerspaceSnmpNotification -Address "10.0.0.1"
-#>
+
 function Test-HammerspaceSnmpNotification {
     [CmdletBinding(SupportsShouldProcess=$true)]
     [OutputType([psobject])]
@@ -249,7 +235,21 @@ function Test-HammerspaceSnmpNotification {
         [Parameter()]
         [int]$Timeout = 120
     )
-
+    <#
+    .SYNOPSIS
+        Tests an SNMP notification.
+    .DESCRIPTION
+        Sends a test SNMP notification to a specified address.
+        This corresponds to the POST /snmp/test/{address} API endpoint.
+    .PARAMETER Address
+        The IP address or hostname to send the test SNMP notification to.
+    .PARAMETER MonitorTask
+        If specified, the function will monitor the asynchronous task until completion.
+    .PARAMETER Timeout
+        The timeout in seconds for monitoring the task. Defaults to 120.
+    .EXAMPLE
+        Test-HammerspaceSnmpNotification -Address "10.0.0.1"
+    #>
     process {
         try {
             $path = "/snmp/test/$Address"
