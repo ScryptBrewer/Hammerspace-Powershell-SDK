@@ -156,6 +156,3 @@ function Get-HammerspaceCurrentUser {
         Write-Error "Failed to get current user information. Error: $_"
     }
 }
-
-# Export the functions
-# Export-ModuleMember -Function Get-HammerspacePermittedOperations, Get-HammerspaceController, Get-HammerspaceSmtp, Get-HammerspaceCurrentUser

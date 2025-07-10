@@ -234,4 +234,4 @@ Remove-HammerspaceRaw -ResourcePath "tasks/$taskUuid"
 
     Author: John Olson
     Company: Hammerspace
-    Copyright: (c) 2025 John Olson. All rights reserved.
+    License: Apache License
